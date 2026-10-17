@@ -1,0 +1,116 @@
+import React, {useState, useEffect, Fragment} from 'react'
+import { Header } from '../../components/Header'
+import axios from 'axios'
+import dayjs from 'dayjs'
+import {formatMoney} from '../../utils/money'
+import './Orders.css'
+export function Orders({cart}) {
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadError, setHasLoadError] = useState(false);
+
+  useEffect(() => {
+    axios.get('/api/orders?expand=products')
+      .then((response) => {
+        setOrders(response.data);
+      })
+      .catch((error) => {
+        console.error('Failed to load orders:', error);
+        setHasLoadError(true);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
+
+  return (
+    <>
+      <title>Your Orders</title>
+      < Header cart = {cart} />
+
+      <div className="orders-page">
+        <div className="page-title">Your Orders</div>
+
+        {hasLoadError && (
+          <p role="alert">
+            Could not load your orders. Make sure the backend server is running, then refresh the page.
+          </p>
+        )}
+        {isLoading && <p>Loading orders...</p>}
+        {!isLoading && !hasLoadError && orders.length === 0 && (
+          <p>You do not have any orders yet.</p>
+        )}
+
+        <div className="orders-grid">
+          {orders.map((order) => {
+            return (
+              <div key={order.id} className="order-container">
+            <div className="order-header">
+              <div className="order-header-left-section">
+                <div className="order-date">
+                  <div className="order-header-label">Order Placed:</div>
+                  <div>{dayjs(order.orderTimeMs).format('MMMM D')}</div>
+                </div>
+                <div className="order-total">
+                  <div className="order-header-label">Total:</div>
+                  <div>{formatMoney(order.totalCostCents)}</div>
+                </div>
+              </div>
+
+              <div className="order-header-right-section">
+                <div className="order-header-label">Order ID:</div>
+                <div>{order.id}</div>
+              </div>
+            </div>
+
+            <div className="order-details-grid">
+              {order.products.map((OrderProduct) => {
+                return (
+              <Fragment key={`${order.id}-${OrderProduct.productId}`}>
+                <div className="product-image-container">
+                  <img
+                    src={OrderProduct.product.image}
+                    alt={OrderProduct.product.name}
+                  />
+                </div>
+
+                <div className="product-details">
+                  <div className="product-name">
+                    {OrderProduct.product.name}
+                  </div>
+                  <div className="product-delivery-date">
+                    Arriving on: {dayjs(OrderProduct.estimatedDeliveryTimeMs).format('MMMM D')}
+                  </div>
+                  <div className="product-quantity">Quantity: {OrderProduct.quantity}</div>
+                  <button className="buy-again-button button-primary">
+                    <img
+                      className="buy-again-icon"
+                      src="images/icons/buy-again.png"
+                      alt="Buy again"
+                    />
+                    <span className="buy-again-message">Add to Cart</span>
+                  </button>
+                </div>
+
+                <div className="product-actions">
+                  <a href="/tracking">
+                    <button className="track-package-button button-secondary">
+                      Track package
+                    </button>
+                  </a>
+                </div>
+              </Fragment>
+                )
+              })}
+            </div>
+          </div>
+                
+            )
+          })}
+          
+         
+        </div>
+      </div>
+    </>
+  );
+}
