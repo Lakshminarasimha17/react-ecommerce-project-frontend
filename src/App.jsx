@@ -3,7 +3,7 @@ import { HomePage } from './pages/Home/HomePage'
 import { Routes , Route} from 'react-router-dom'
 import axios from 'axios'
 import { CheckoutPage } from './pages/checkout/CheckoutPage'
-import { Orders } from './pages/Orders/Orders'
+import { Orders } from './pages/orders/Orders'
 import { Tracking } from './pages/tracking/Tracking'
 import './App.css'
 
